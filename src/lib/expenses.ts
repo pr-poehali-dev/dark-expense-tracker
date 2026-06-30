@@ -20,6 +20,9 @@ export interface Expense {
   amount: number;
   date: string; // YYYY-MM-DD
   comment: string;
+  liters?: number;
+  fullTank?: boolean;
+  odometer?: number;
 }
 
 export const CATEGORIES: Category[] = [
