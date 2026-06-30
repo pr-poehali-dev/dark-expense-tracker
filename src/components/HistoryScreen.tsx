@@ -18,6 +18,17 @@ export const HistoryScreen = ({ expenses }: { expenses: Expense[] }) => {
 
   const total = monthItems.reduce((s, e) => s + e.amount, 0);
 
+  const avgConsumption = useMemo(() => {
+    const fuelWithOdo = expenses
+      .filter((e) => e.category === 'fuel' && e.odometer != null && e.liters != null)
+      .sort((a, b) => (a.odometer ?? 0) - (b.odometer ?? 0));
+    if (fuelWithOdo.length < 2) return null;
+    const totalLiters = fuelWithOdo.reduce((s, e) => s + (e.liters ?? 0), 0);
+    const distance = (fuelWithOdo.at(-1)!.odometer ?? 0) - (fuelWithOdo[0].odometer ?? 0);
+    if (distance <= 0) return null;
+    return (totalLiters / distance) * 100;
+  }, [expenses]);
+
   const grouped = useMemo(() => {
     const map = new Map<CategoryId, Expense[]>();
     for (const e of monthItems) {
@@ -41,7 +52,17 @@ export const HistoryScreen = ({ expenses }: { expenses: Expense[] }) => {
           {monthLabel(ym)}
         </p>
         <p className="text-4xl font-extrabold tabular text-primary mt-2">{formatMoney(total)}</p>
-        <p className="text-xs text-muted-foreground mt-1">{monthItems.length} операций</p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-xs text-muted-foreground">{monthItems.length} операций</p>
+          {avgConsumption != null && (
+            <p className="text-xs text-muted-foreground">
+              Расход:{' '}
+              <span className="text-primary font-semibold tabular">
+                {avgConsumption.toFixed(1)} л/100 км
+              </span>
+            </p>
+          )}
+        </div>
       </div>
 
       {grouped.length === 0 && (
